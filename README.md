@@ -147,7 +147,3 @@ command.
     .width NUM1 NUM2 ...   Set column widths for "column" mode
                              Negative values right-justify
     sqlite> 
-
-### Known issues
-
-Sending SIGINT to the program makes it crash instead of properly handling it.

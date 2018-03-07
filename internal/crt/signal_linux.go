@@ -16,7 +16,7 @@ func X__sysv_signal(tls *TLS, signum int32, handler uintptr) {
 	ch := make(chan os.Signal)
 	go func() {
 		<-ch
-		(*(*func(*TLS, int32))(unsafe.Pointer(handler)))(tls, signum)
+		(*(*func(*TLS, int32))(unsafe.Pointer(&handler)))(tls, signum)
 	}()
 	signal.Notify(ch, syscall.Signal(signum))
 }
