@@ -1,4 +1,5 @@
 //go:generate sqlite2go -shell -o "main_${GOOS}_${GOARCH}.go" -crt github.com/cznic/sqlite3shell/internal/crt
+//go:generate gofmt -l -s -w .
 
 // Command sqlite3shell is a mechanically produced Go port of shell.c, part of
 // the SQLite project.
@@ -144,5 +145,5 @@
 //    .vfsname ?AUX?         Print the name of the VFS stack
 //    .width NUM1 NUM2 ...   Set column widths for "column" mode
 //                             Negative values right-justify
-//    sqlite> 
+//    sqlite>
 package main
