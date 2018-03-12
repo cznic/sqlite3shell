@@ -9,7 +9,7 @@ package crt
 type (
 	long_t    = int64
 	pthread_t = uint64
-	rawmem    [1<<21 - 1]byte
+	rawmem    [1<<50 - 1]byte
 	size_t    = uint64
 	ssize_t   = int64
 	ulong_t   = uint64
