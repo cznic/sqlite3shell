@@ -11,6 +11,7 @@ import (
 func Xacos(tls *TLS, x float64) float64        { return math.Acos(x) }
 func Xasin(tls *TLS, x float64) float64        { return math.Asin(x) }
 func Xatan(tls *TLS, x float64) float64        { return math.Atan(x) }
+func Xatan2(tls *TLS, y, x float64) float64    { return math.Atan2(y, x) }
 func Xceil(tls *TLS, x float64) float64        { return math.Ceil(x) }
 func Xcopysign(tls *TLS, x, y float64) float64 { return X__builtin_copysign(tls, x, y) }
 func Xcos(tls *TLS, x float64) float64         { return math.Cos(x) }
@@ -19,6 +20,8 @@ func Xexp(tls *TLS, x float64) float64         { return math.Exp(x) }
 func Xfabs(tls *TLS, x float64) float64        { return math.Abs(x) }
 func Xfabsf(tls *TLS, x float32) float32       { return float32(math.Abs(float64(x))) }
 func Xfloor(tls *TLS, x float64) float64       { return math.Floor(x) }
+func Xfmod(tls *TLS, x, y float64) float64     { return math.Mod(x, y) }
+func Xhypot(tls *TLS, x, y float64) float64    { return math.Hypot(x, y) }
 func Xlog(tls *TLS, x float64) float64         { return math.Log(x) }
 func Xlog10(tls *TLS, x float64) float64       { return math.Log10(x) }
 func Xpow(tls *TLS, x, y float64) float64      { return math.Pow(x, y) }

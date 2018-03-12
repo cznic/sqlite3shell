@@ -15,7 +15,7 @@ all: editor
 	misspell *.go
 	gosimple || true
 	maligned || true
-	unconvert -apply
+	#unconvert -apply
 
 clean:
 	go clean

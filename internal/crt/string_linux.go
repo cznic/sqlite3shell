@@ -109,7 +109,7 @@ func Xstrrchr(tls *TLS, s uintptr, c int32) uintptr {
 }
 
 // char *strstr(const char *haystack, const char *needle);
-func Xstrstr(tls *TLS, haystack, needle uintptr) int8 {
+func Xstrstr(tls *TLS, haystack, needle uintptr) uintptr {
 	panic("TODO strstr")
 }
 
