@@ -124,5 +124,3 @@ type XSECURITY_ATTRIBUTES struct {
 	X1 uintptr
 	X2 int32
 }
-
-type E_GET_FILEEX_INFO_LEVELS int8

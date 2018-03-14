@@ -14,6 +14,8 @@ import (
 	"sync/atomic"
 	"syscall"
 	"unsafe"
+
+	"github.com/cznic/memory"
 )
 
 // TODO: implement a generic wide string variant of this
@@ -35,25 +37,27 @@ func XGetCurrentThreadId(tls *TLS) uint32 {
 }
 
 func X_msize(tls *TLS, ptr uintptr) uint32 {
-	panic("TODO not implemented and not used")
+	return uint32(memory.UintptrUsableSize(ptr))
 }
 
 func X_endthreadex(tls *TLS, a uint32) {
 	panic("TODO not implemented and not used")
 }
 
-func X_beginthreadex(tls *TLS, a uintptr, b uint32, c func(*TLS, uintptr) uint32, d uintptr, e uint32, f *uint32) uintptr {
+func X_beginthreadex(tls *TLS, a uintptr, b uint32, c uintptr, d uintptr, e uint32, f uintptr) uintptr {
 	panic("TODO not implemented and not used")
 }
 
 // LONG __cdecl InterlockedCompareExchange(_Inout_ LONG volatile *Destination,_In_ LONG Exchange,_In_ LONG Comparand);
 // TODO: figure out if we can bypass a minor race (see below for an explanation)
-func X_InterlockedCompareExchange(tls *TLS, dest *int32, exchange, comparand int32) int32 {
+func X_InterlockedCompareExchange(tls *TLS, dest_param uintptr, exchange, comparand int32) int32 {
 	// TODO: memory barrier: https://msdn.microsoft.com/de-de/library/windows/desktop/ms683560(v=vs.85).aspx
 
 	if strace {
-		fmt.Fprintf(os.Stderr, "InterlockedCompareExchange(%#x, %#x, %#x)\n", comparand, exchange, dest)
+		fmt.Fprintf(os.Stderr, "InterlockedCompareExchange(%#x, %#x, %#x)\n", comparand, exchange, dest_param)
 	}
+
+	dest := (*int32)(unsafe.Pointer(dest_param))
 
 	initial := comparand
 	if !atomic.CompareAndSwapInt32(dest, comparand, exchange) {
@@ -74,30 +78,17 @@ func X_InterlockedCompareExchange(tls *TLS, dest *int32, exchange, comparand int
 
 // type mappings
 //ty:ptr: HANDLE, LPSECURITY_ATTRIBUTES, LPCVOID, LPVOID, LPOSVERSIONINFO, HLOCAL, LPOVERLAPPED, PCONSOLE_SCREEN_BUFFER_INFO
+//ty:ptr: LPTSTR*, LPCWSTR*, LPBOOL, PLONG, LONG*, LPDWORD, va_list*, HMODULE, LPFILETIME, LPOSVERSIONINFO, LPOSVERSIONINFOW
+//ty:ptr: LPSECURITY_ATTRIBUTES, LPSYSTEM_INFO, LPSYSTEMTIME, SYSTEMTIME*, LARGE_INTEGER*, LPOVERLAPPED, LPCRITICAL_SECTION
+//ty:ptr: FARPROC
 //ty:str: LPCTSTR, LPTSTR, LPCSTR, LPSTR
-//ty:**i8: LPTSTR*
-//ty:**u16: LPCWSTR*
 //ty:ustr: LPCWSTR, LPWSTR
+//ty:int8: GET_FILEEX_INFO_LEVELS
 //ty:int32: BOOL, int, LONG
 //ty:uint16: WORD
 //ty:uint32: DWORD, UINT
 //ty:size_t: SIZE_T
-//ty:i32ptr: LPBOOL, PLONG, LONG*
-//ty:u32ptr: LPDWORD
 //ty:void: void
-//ty:isliceptr: va_list*
-//ty:*HMODULE: HMODULE
-//ty:*FILETIME: LPFILETIME
-//ty:*OSVERSIONINFOA: LPOSVERSIONINFO
-//ty:*OSVERSIONINFOW: LPOSVERSIONINFOW
-//ty:*SECURITY_ATTRIBUTES: LPSECURITY_ATTRIBUTES
-//ty:*SYSTEM_INFO: LPSYSTEM_INFO
-//ty:*SYSTEMTIME: LPSYSTEMTIME, SYSTEMTIME*
-//ty:*LARGE_INTEGER: LARGE_INTEGER*
-//ty:*OVERLAPPED: LPOVERLAPPED
-//ty:*CRITICAL_SECTION: LPCRITICAL_SECTION
-//ty:FARPROC: FARPROC
-//ty:GET_FILEEX_INFO_LEVELS: GET_FILEEX_INFO_LEVELS
 
 // defined syscalls
 //sys: BOOL   	AreFileApisANSI();

@@ -504,7 +504,7 @@ func XGetDiskFreeSpaceW(tls *TLS, lpRootPathName uintptr, lpSectorsPerCluster ui
 }
 
 // //sys: BOOL   	GetFileAttributesExW(LPCWSTR lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, LPVOID lpFileInformation); 
-func XGetFileAttributesExW(tls *TLS, lpFileName uintptr, fInfoLevelId E_GET_FILEEX_INFO_LEVELS, lpFileInformation uintptr) int32 {
+func XGetFileAttributesExW(tls *TLS, lpFileName uintptr, fInfoLevelId int8, lpFileInformation uintptr) int32 {
 
 	ret, _, err := syscall.Syscall(procGetFileAttributesExW.Addr(), 3, uintptr(lpFileName), 
 		uintptr(fInfoLevelId), 

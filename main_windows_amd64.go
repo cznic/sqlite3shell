@@ -33,7 +33,7 @@ uncontaminated with licensed code from other projects.
 package main
 
 import (
-	"math"
+	_ "math"
 	"os"
 	"unsafe"
 
@@ -56821,7 +56821,7 @@ func _942pagerUnlockIfUnused(tls *crt.TLS, _pPager uintptr /* *TPager */) {
 _1:
 }
 
-type E_GET_FILEEX_INFO_LEVELS int8
+type E_GET_FILEEX_INFO_LEVELS = int8
 
 const (
 	CGetFileExInfoStandard E_GET_FILEEX_INFO_LEVELS = iota

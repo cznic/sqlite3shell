@@ -1,18 +1,33 @@
 package crt
 
+import (
+	"github.com/cznic/ccir/libc/unistd"
+)
+
 // int access(const char *path, int amode);
 func X_access(tls *TLS, path uintptr, amode int32) int32 {
-	panic("TODO: NOT IMPLEMENTED")
+	mode := 0
+	if amode != unistd.XF_OK {
+		panic("access mode not supported")
+	}
+
+	f := openFile(tls, GoString(path), mode)
+	if f != nil {
+		if err := f.Close(); err != nil {
+			return -1
+		}
+		return 0
+	}
+	// TODO: potentially support more
+	return -1
 }
 
 func X_setmode(tls *TLS, fd uintptr, amode int32) int32 {
-	panic("TODO: NOT IMPLEMENTED")
+	// TODO
+	return 0
 }
 
-func X_fileno(tls *TLS, fd uintptr) uintptr {
-	panic("TODO: NOT IMPLEMENTED")
-}
-
+// TODO: These shouldn't be required here? ctype & stuff?
 func Xfputs(tls *TLS, fd uintptr, data uintptr) uintptr {
 	panic("TODO: NOT IMPLEMENTED")
 }
@@ -22,7 +37,10 @@ func Xisdigit(tls *TLS, chr int32) uintptr {
 }
 
 func Xisspace(tls *TLS, chr int32) uintptr {
-	panic("TODO: NOT IMPLEMENTED")
+	if chr == int32(' ') {
+		return 1
+	}
+	return 0
 }
 
 func Xisalpha(tls *TLS, chr int32) uintptr {

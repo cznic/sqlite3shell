@@ -23,7 +23,6 @@ type CallbackFunc func(wr io.Writer, tyMap map[string]Type, comment, ret, name, 
 
 var compiledFuncs []string = []string{}
 
-// var farProcGoTy = "func(*TLS) int64"
 var size_tGoTy = "uint64"
 
 func fileHeader(wr io.Writer, tag string, imports []string) error {
@@ -50,45 +49,34 @@ type Type int
 const (
 	TyPtr Type = iota
 	TyStr
-	// unicode string
 	TyUstr
-	TyInt32
 	TyInt8
+	TyInt32
 	TyUint16
 	TyUint32
-	TyU32Ptr
-	TyI32Ptr
-	TyISlicePtr
-	TyI8DoublePtr
-	TyU16DoublePtr
-	TyHMODULEPtr
-	TyFILETIMEPtr
-	TyOSVERSIONINFOAPtr
-	TyOSVERSIONINFOWPtr
-	TyOVERLAPPEDPtr
-	TySECURITY_ATTRIBUTESPtr
-	TySYSTEM_INFOPtr
-	TySYSTEMTIMEPtr
-	TyCRITICAL_SECTIONPtr
-	TyXLARGE_INTEGERPtr
-	TyFarProc
 	TySIZE_T
-	TyGET_FILEEX_INFO_LEVELS
 
-	TyVoid
 	TyError
+	TyVoid
 )
+
+var TyMap = map[string]Type{
+	"ptr":    TyPtr,
+	"str":    TyStr,
+	"ustr":   TyUstr,
+	"int8":   TyInt8,
+	"int32":  TyInt32,
+	"uint16": TyUint16,
+	"uint32": TyUint32,
+	"void":   TyVoid,
+	"size_t": TySIZE_T,
+}
 
 func (t Type) Syscall(val string) string {
 	switch t {
-	case TyPtr:
+	case TyPtr, TyStr, TyUstr:
 		return fmt.Sprintf("uintptr(%s)", val)
 	case TyInt32, TyInt8, TyUint16, TyUint32, TySIZE_T:
-		return fmt.Sprintf("uintptr(%s)", val)
-	case TyStr, TyUstr, TyISlicePtr, TyU32Ptr, TyI32Ptr, TyI8DoublePtr, TyU16DoublePtr,
-		TyHMODULEPtr, TyFILETIMEPtr, TyOSVERSIONINFOAPtr, TyOSVERSIONINFOWPtr, TyOVERLAPPEDPtr,
-		TySECURITY_ATTRIBUTESPtr, TySYSTEM_INFOPtr, TySYSTEMTIMEPtr, TyXLARGE_INTEGERPtr,
-		TyCRITICAL_SECTIONPtr, TyFarProc, TyGET_FILEEX_INFO_LEVELS:
 		return fmt.Sprintf("uintptr(%s)", val)
 	default:
 		log.Fatal("Cannot syscall type: ", t)
@@ -98,16 +86,12 @@ func (t Type) Syscall(val string) string {
 
 func (t Type) Write(target, val string) string {
 	switch t {
-	case TyPtr,
-		TyStr, TyUstr, TyISlicePtr, TyU32Ptr, TyI32Ptr, TyI8DoublePtr, TyU16DoublePtr,
-		TyHMODULEPtr, TyFILETIMEPtr, TyOVERLAPPEDPtr, TyOSVERSIONINFOAPtr, TyOSVERSIONINFOWPtr,
-		TySECURITY_ATTRIBUTESPtr, TySYSTEM_INFOPtr, TySYSTEMTIMEPtr, TyXLARGE_INTEGERPtr,
-		TyCRITICAL_SECTIONPtr, TyFarProc:
+	case TyPtr, TyStr, TyUstr:
 		return fmt.Sprintf("*%s = %s", target, val)
+	case TyInt8:
+		return fmt.Sprintf("%s = int8(%s)", target, val)
 	case TyInt32:
 		return fmt.Sprintf("%s = int32(%s)", target, val)
-	case TyInt8, TyGET_FILEEX_INFO_LEVELS:
-		return fmt.Sprintf("%s = int8(%s)", target, val)
 	case TyUint16:
 		return fmt.Sprintf("%s = uint16(%s)", target, val)
 	case TyUint32:
@@ -127,16 +111,12 @@ func (t Type) Write(target, val string) string {
 func (t Type) GoType() string {
 	ty := ""
 	switch t {
-	case TyPtr, TyStr, TyUstr, TyI32Ptr, TyU32Ptr, TyI8DoublePtr, TyU16DoublePtr, TyHMODULEPtr, TyFILETIMEPtr,
-		TyOSVERSIONINFOAPtr, TyISlicePtr, TyOSVERSIONINFOWPtr, TyOVERLAPPEDPtr, TySECURITY_ATTRIBUTESPtr,
-		TySYSTEM_INFOPtr, TySYSTEMTIMEPtr, TyXLARGE_INTEGERPtr, TyCRITICAL_SECTIONPtr, TyFarProc:
+	case TyPtr, TyStr, TyUstr:
 		ty = "uintptr"
 	case TyInt32:
 		ty = "int32"
 	case TyInt8:
 		ty = "int8"
-	case TyGET_FILEEX_INFO_LEVELS:
-		ty = "E_GET_FILEEX_INFO_LEVELS"
 	case TyUint16:
 		ty = "uint16"
 	case TyUint32:
@@ -145,8 +125,6 @@ func (t Type) GoType() string {
 		ty = ""
 	case TySIZE_T:
 		ty = size_tGoTy
-	//case TyFarProc:
-	//ty = farProcGoTy
 	default:
 		log.Fatal("Cannot get GoType: ", t)
 	}
@@ -156,13 +134,11 @@ func (t Type) GoType() string {
 func (t Type) FormatStr(val interface{}) string {
 	arg := "%s"
 	switch t {
-	case TyPtr, TyISlicePtr, TyU32Ptr, TyI32Ptr, TyI8DoublePtr, TyU16DoublePtr, TyHMODULEPtr, TyFILETIMEPtr,
-		TyOSVERSIONINFOAPtr, TyOSVERSIONINFOWPtr, TyOVERLAPPEDPtr, TySECURITY_ATTRIBUTESPtr, TySYSTEM_INFOPtr,
-		TySYSTEMTIMEPtr, TyXLARGE_INTEGERPtr, TyCRITICAL_SECTIONPtr, TyFarProc:
+	case TyPtr:
 		arg = "%#x"
 	case TyStr, TyUstr:
 		arg = "%s"
-	case TyInt8, TyGET_FILEEX_INFO_LEVELS, TyUint16, TyInt32, TyUint32, TySIZE_T:
+	case TyInt8, TyUint16, TyInt32, TyUint32, TySIZE_T:
 		arg = "%#x"
 	case TyError:
 		arg = "%v"
@@ -294,62 +270,11 @@ func compileWinFile(wr io.Writer, arch string, callback CallbackFunc) {
 
 		for _, alias := range strings.Split(aliases, ",") {
 			alias = strings.TrimSpace(alias)
-			switch ty {
-			case "ptr":
-				tyMap[alias] = TyPtr
-			case "str":
-				tyMap[alias] = TyStr
-			case "ustr":
-				tyMap[alias] = TyUstr
-			case "int32":
-				tyMap[alias] = TyInt32
-			case "int8":
-				tyMap[alias] = TyInt8
-			case "uint16":
-				tyMap[alias] = TyUint16
-			case "uint32":
-				tyMap[alias] = TyUint32
-			case "void":
-				tyMap[alias] = TyVoid
-			case "isliceptr":
-				tyMap[alias] = TyISlicePtr
-			case "u32ptr":
-				tyMap[alias] = TyU32Ptr
-			case "i32ptr":
-				tyMap[alias] = TyI32Ptr
-			case "**i8":
-				tyMap[alias] = TyI8DoublePtr
-			case "**u16":
-				tyMap[alias] = TyU16DoublePtr
-			case "*HMODULE":
-				tyMap[alias] = TyHMODULEPtr
-			case "*FILETIME":
-				tyMap[alias] = TyFILETIMEPtr
-			case "*OSVERSIONINFOA":
-				tyMap[alias] = TyOSVERSIONINFOAPtr
-			case "*OSVERSIONINFOW":
-				tyMap[alias] = TyOSVERSIONINFOWPtr
-			case "*SECURITY_ATTRIBUTES":
-				tyMap[alias] = TySECURITY_ATTRIBUTESPtr
-			case "*SYSTEM_INFO":
-				tyMap[alias] = TySYSTEM_INFOPtr
-			case "*SYSTEMTIME":
-				tyMap[alias] = TySYSTEMTIMEPtr
-			case "*LARGE_INTEGER":
-				tyMap[alias] = TyXLARGE_INTEGERPtr
-			case "*OVERLAPPED":
-				tyMap[alias] = TyOVERLAPPEDPtr
-			case "*CRITICAL_SECTION":
-				tyMap[alias] = TyCRITICAL_SECTIONPtr
-			case "FARPROC":
-				tyMap[alias] = TyFarProc
-			case "size_t":
-				tyMap[alias] = TySIZE_T
-			case "GET_FILEEX_INFO_LEVELS":
-				tyMap[alias] = TyGET_FILEEX_INFO_LEVELS
-			default:
+			targetTy, ok := TyMap[ty]
+			if !ok {
 				log.Fatal("unknown target type: ", ty)
 			}
+			tyMap[alias] = targetTy
 		}
 	}
 
@@ -379,7 +304,6 @@ func main() {
 		out.Reset()
 
 		if arch == "386" {
-			//farProcGoTy = "func(*TLS) int32"
 			size_tGoTy = "uint32"
 		}
 

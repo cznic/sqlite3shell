@@ -1,7 +1,3 @@
-// Copyright 2017 The CRT Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package crt
 
 import (
@@ -331,6 +327,38 @@ func Xputc(tls *TLS, c int32, stream uintptr) int32 {
 // int putc(int c, FILE *stream);
 func X_IO_putc(tls *TLS, c int32, stream uintptr) int32 { return Xputc(tls, c, stream) }
 
+func Xfopen(tls *TLS, path, mode uintptr) uintptr {
+	return Xfopen64(tls, path, mode)
+}
+
+func parseMode(mode uintptr) int {
+	switch mode := GoString(mode); mode {
+	case "a":
+		return os.O_RDWR | os.O_CREATE | os.O_APPEND
+	case "r", "rb":
+		return os.O_RDONLY
+	case "w":
+		return os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+	default:
+		panic(mode)
+	}
+}
+
+func openFile(tls *TLS, path string, mode int) *os.File {
+	f, err := os.OpenFile(path, mode, 0666)
+	if err != nil {
+		switch {
+		case os.IsNotExist(err):
+			tls.setErrno(errno.XENOENT)
+		case os.IsPermission(err):
+			tls.setErrno(errno.XEPERM)
+		default:
+			tls.setErrno(errno.XEACCES)
+		}
+	}
+	return f
+}
+
 // FILE *fopen64(const char *path, const char *mode);
 func Xfopen64(tls *TLS, path, mode uintptr) uintptr {
 	p := GoString(path)
@@ -343,41 +371,7 @@ func Xfopen64(tls *TLS, path, mode uintptr) uintptr {
 	case os.Stdout.Name():
 		u = stdout
 	default:
-		var f *os.File
-		var err error
-		switch mode := GoString(mode); mode {
-		case "a":
-			if f, err = os.OpenFile(p, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666); err != nil {
-				switch {
-				case os.IsPermission(err):
-					tls.setErrno(errno.XEPERM)
-				default:
-					tls.setErrno(errno.XEACCES)
-				}
-			}
-		case "r", "rb":
-			if f, err = os.OpenFile(p, os.O_RDONLY, 0666); err != nil {
-				switch {
-				case os.IsNotExist(err):
-					tls.setErrno(errno.XENOENT)
-				case os.IsPermission(err):
-					tls.setErrno(errno.XEPERM)
-				default:
-					tls.setErrno(errno.XEACCES)
-				}
-			}
-		case "w":
-			if f, err = os.OpenFile(p, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666); err != nil {
-				switch {
-				case os.IsPermission(err):
-					tls.setErrno(errno.XEPERM)
-				default:
-					tls.setErrno(errno.XEACCES)
-				}
-			}
-		default:
-			panic(mode)
-		}
+		f := openFile(tls, p, parseMode(mode))
 		if f != nil {
 			u = Xmalloc(tls, ptrSize)
 			files.add(f, u)
@@ -553,11 +547,13 @@ func Xvfprintf(tls *TLS, stream, format uintptr, ap []interface{}) int32 {
 func Xrewind(tls *TLS, stream uintptr) { fseek(tls, stream, 0, int32(os.SEEK_SET)) }
 
 // FILE *popen(const char *command, const char *type);
+func X_popen(tls *TLS, command, typ uintptr) uintptr { return Xpopen(tls, command, typ) }
 func Xpopen(tls *TLS, command, typ uintptr) uintptr {
 	panic("TODO popen")
 }
 
 // int pclose(FILE *stream);
+func X_pclose(tls *TLS, stream uintptr) int32 { return Xpclose(tls, stream) }
 func Xpclose(tls *TLS, stream uintptr) int32 {
 	panic("TODO pclose")
 }
