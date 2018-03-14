@@ -67,3 +67,7 @@ func Xisnan(tls *TLS, x float64) int32 {
 
 	return 0
 }
+
+func X__isnan(tls *TLS, x float64) int32 {
+	return Xisnan(tls, x)
+}

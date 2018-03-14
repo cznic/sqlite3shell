@@ -1,19 +1,12 @@
-// Copyright 2017 The CRT Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package crt
 
 import (
 	"fmt"
 	"os"
 	"syscall"
-	"time"
 	"unsafe"
 
-	"github.com/cznic/ccir/libc/errno"
 	"github.com/cznic/ccir/libc/unistd"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 // int close(int fd);
@@ -50,16 +43,6 @@ func Xunlink(tls *TLS, path uintptr) int32 {
 		tls.setErrno(err)
 	}
 	return int32(r)
-}
-
-// int rmdir(const char *pathname);
-func Xrmdir(tls *TLS, pathname uintptr) int32 {
-	panic("TODO rmdir")
-}
-
-// int fchown(int fd, uid_t owner, gid_t group);
-func Xfchown(tls *TLS, fd int32, owner, group uint32) int32 {
-	panic("TODO fchown")
 }
 
 // uid_t getuid(void);
@@ -113,15 +96,6 @@ func Xgetpid(tls *TLS) int32 {
 	return int32(r)
 }
 
-// unsigned sleep(unsigned seconds);
-func Xsleep(tls *TLS, seconds uint32) uint32 {
-	time.Sleep(time.Duration(seconds) * time.Second)
-	if strace {
-		fmt.Fprintf(os.Stderr, "sleep(%#x)", seconds)
-	}
-	return 0
-}
-
 // off_t lseek64(int fildes, off_t offset, int whence);
 func Xlseek64(tls *TLS, fildes int32, offset int64, whence int32) int64 {
 	r, _, err := syscall.Syscall(syscall.SYS_LSEEK, uintptr(fildes), uintptr(offset), uintptr(whence))
@@ -144,20 +118,6 @@ func Xftruncate64(tls *TLS, fildes int32, length int64) int32 {
 		tls.setErrno(err)
 	}
 	return int32(r)
-}
-
-// int usleep(useconds_t usec);
-func Xusleep(tls *TLS, usec uint32) int32 {
-	time.Sleep(time.Duration(usec) * time.Microsecond)
-	if strace {
-		fmt.Fprintf(os.Stderr, "usleep(%#x)", usec)
-	}
-	return 0
-}
-
-// int chdir(const char *path);
-func Xchdir(tls *TLS, path uintptr) int32 {
-	panic("TODO chdir")
 }
 
 // ssize_t read(int fd, void *buf, size_t count);
@@ -210,11 +170,6 @@ func Xwrite(tls *TLS, fd int32, buf uintptr, count size_t) ssize_t {
 	return ssize_t(r)
 }
 
-// ssize_t readlink(const char *pathname, char *buf, size_t bufsiz);
-func Xreadlink(tls *TLS, pathname, buf uintptr, bufsiz size_t) ssize_t {
-	panic("TODO readlink")
-}
-
 // long sysconf(int name);
 func Xsysconf(tls *TLS, name int32) int64 {
 	switch name {
@@ -223,14 +178,4 @@ func Xsysconf(tls *TLS, name int32) int64 {
 	default:
 		panic(fmt.Errorf("%v(%#x)", name, name))
 	}
-}
-
-// int isatty(int fd);
-func Xisatty(tls *TLS, fd int32) int32 {
-	if terminal.IsTerminal(int(fd)) {
-		return 1
-	}
-
-	tls.setErrno(errno.XENOTTY)
-	return 0
 }
