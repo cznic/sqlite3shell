@@ -1,0 +1,33 @@
+environment:
+  PROJ_NAME: sqlite3shell
+  PROJ_PATH: src/github.com/cznic
+
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      GOPATH: C:\gopath
+      GOARCH: 386
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      GOPATH: C:\gopath
+      GOARCH: amd64
+    - APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
+      GOPATH: /home/appveyor/gopath
+      GOARCH: 386
+    - APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
+      GOPATH: /home/appveyor/gopath
+      GOARCH: amd64
+
+stack: go 1.10
+
+install:
+  - cd ..
+  - ps: $env:PROJ_PATH = $env:GOPATH + "/" + $env:PROJ_PATH
+  - ps: $env:PROJ_FULL_PATH = $env:PROJ_PATH + "/" + $env:PROJ_NAME 
+  - ps: New-Item $env:PROJ_PATH -ItemType Directory 
+  - ps: Move-Item $env:APPVEYOR_BUILD_FOLDER $env:PROJ_FULL_PATH 
+  - ps: Set-Location -Path $env:PROJ_FULL_PATH 
+  - go get -d ./...
+
+build: off
+
+test_script:
+  - go test -timeout 999m -v

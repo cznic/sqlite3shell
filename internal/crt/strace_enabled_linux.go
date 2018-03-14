@@ -1,3 +1,9 @@
+// Copyright 2017 The CRT Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+// +build crt.strace
+
 package crt
 
 import (
@@ -5,8 +11,6 @@ import (
 
 	fcntl2 "github.com/cznic/ccir/libc/fcntl"
 )
-
-// +build crt.strace
 
 func cmdString(cmd int32) string {
 	switch cmd {
