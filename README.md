@@ -1,5 +1,5 @@
 # sqlite3shell
-
+[![Build status](https://ci.appveyor.com/api/projects/status/7ucmixmtbwgh2n1g/branch/master?svg=true)](https://ci.appveyor.com/project/steffengy/sqlite3shell/branch/master)
 
 Command sqlite3shell is a mechanically produced Go port of shell.c, part of
 the SQLite project.
